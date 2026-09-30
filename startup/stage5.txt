@@ -1,0 +1,30 @@
+# Стартовый скрипт этапа 5: chmod и help (VFS deep)
+
+help
+help chmod
+
+# Восьмеричная запись
+ls -l /etc
+chmod 644 /etc/passwd
+chmod 700 /etc/app
+ls -l /etc
+
+# Символьная запись, несколько путей
+cd /home/user/docs
+ls -l
+chmod u+x notes.md
+chmod go-r report.txt
+chmod a=rw,u+x notes.md report.txt
+ls -l
+chmod -x,u=r notes.md
+ls -l notes.md
+
+# Ошибки
+chmod
+chmod 755
+chmod abc notes.md
+chmod 999 notes.md
+chmod u+z notes.md
+chmod 755 /nope
+help ls cd
+help nope
