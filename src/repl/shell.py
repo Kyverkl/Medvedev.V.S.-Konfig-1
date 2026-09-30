@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 from repl.commands import CommandError, all_commands
 from repl.parser import parse
-from repl.vfs import VFS, VFSError
+from repl.vfs import VFS, Node, VFSError, normalize
 
 
 class Shell:
@@ -19,6 +19,12 @@ class Shell:
 
     def prompt(self) -> str:
         return f"{self.user}@{self.host}:{self.cwd}$ "
+
+    def abspath(self, path: str) -> str:
+        return normalize(self.cwd, path)
+
+    def lookup(self, path: str) -> Node | None:
+        return self.vfs.get(self.abspath(path))
 
     def load_vfs(self, path: str) -> None:
         try:

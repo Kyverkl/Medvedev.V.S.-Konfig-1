@@ -48,6 +48,17 @@ class VFS:
             raise VFSError(f"ошибка чтения VFS: {e}")
         return cls(root, source)
 
+    def get(self, path: str) -> Node | None:
+        """Узел по абсолютному нормализованному пути."""
+        node: Node = self.root
+        for part in path.split("/"):
+            if not part:
+                continue
+            if not isinstance(node, Dir) or part not in node.children:
+                return None
+            node = node.children[part]
+        return node
+
     def wipe_source(self) -> None:
         """Очищает физическое представление VFS."""
         if self.source is None or not self.source.is_dir():
@@ -70,6 +81,25 @@ class VFS:
                 else:
                     files += 1
         return files, dirs
+
+
+def normalize(cwd: str, path: str) -> str:
+    """Абсолютный путь с раскрытыми '.' и '..'."""
+    full = path if path.startswith("/") else f"{cwd}/{path}"
+    parts: list[str] = []
+    for part in full.split("/"):
+        if part == "..":
+            if parts:
+                parts.pop()
+        elif part not in ("", "."):
+            parts.append(part)
+    return "/" + "/".join(parts)
+
+
+def mode_string(node: Node) -> str:
+    kind = "d" if isinstance(node, Dir) else "-"
+    bits = "".join(ch if node.mode & (1 << (8 - i)) else "-" for i, ch in enumerate("rwxrwxrwx"))
+    return kind + bits
 
 
 def _read_dir(path: Path, name: str) -> Dir:
