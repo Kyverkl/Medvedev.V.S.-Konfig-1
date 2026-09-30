@@ -35,3 +35,21 @@ class Shell:
         if result:
             self.output(result.rstrip("\n"))
         return True
+
+    def run_script(self, path: str) -> None:
+        try:
+            with open(path, encoding="utf-8") as f:
+                lines = f.read().splitlines()
+        except OSError as e:
+            self.output(f"Ошибка: не удалось открыть скрипт {path}: {e.strerror}")
+            return
+        for number, raw in enumerate(lines, 1):
+            # Комментарии в стиле Python: всё после '#'
+            line = raw.split("#", 1)[0].strip()
+            if not line:
+                continue
+            self.output(self.prompt() + line)
+            if not self.execute(line):
+                self.output(f"Ошибка в скрипте {path}, строка {number}")
+            if self.exited:
+                break

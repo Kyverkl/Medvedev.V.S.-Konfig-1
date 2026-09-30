@@ -51,6 +51,10 @@ class MainWindow(QMainWindow):
         self.shell.execute(line)
         self.refresh()
 
+    def run_script(self, path: str) -> None:
+        self.shell.run_script(path)
+        self.refresh()
+
     def refresh(self) -> None:
         self.prompt.setText(self.shell.prompt())
         if self.shell.exited:
