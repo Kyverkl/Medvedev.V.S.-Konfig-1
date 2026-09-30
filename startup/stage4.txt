@@ -1,0 +1,36 @@
+# Стартовый скрипт этапа 4: ls, cd, cat, wc, cal (VFS deep)
+
+ls
+ls -l
+ls /home/user /etc
+ls -l etc/passwd bin
+cd /home/user/docs
+ls
+cat notes.md
+cat report.txt ../music/playlist.txt
+wc notes.md
+wc -l -w notes.md report.txt
+cd ../../../etc/app
+wc -c app.conf
+cd ..
+cd
+cal
+cal 2 2024
+cal 2026
+
+# Ошибки
+ls /nope
+ls -a
+cd /etc/passwd
+cd /nope
+cd a b
+cat
+cat /etc
+cat /nope
+wc
+wc -x /etc/passwd
+wc /home
+cal 13 2024
+cal 0
+cal abc
+cal 1 2 3
