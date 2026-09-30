@@ -20,6 +20,8 @@ def main() -> None:
     for key, value in asdict(config).items():
         shell.output(f"[debug] {key} = {value}")
 
+    if config.vfs:
+        shell.load_vfs(config.vfs)
     if config.script:
         # Запуск после старта цикла событий, чтобы exit в скрипте закрывал окно
         QTimer.singleShot(0, lambda: window.run_script(config.script))
