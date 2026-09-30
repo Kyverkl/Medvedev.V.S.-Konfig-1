@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 from repl.commands import CommandError, all_commands
 from repl.parser import parse
+from repl.vfs import VFS, VFSError
 
 
 class Shell:
@@ -11,12 +12,23 @@ class Shell:
         self.output = output
         self.user = getpass.getuser()
         self.host = socket.gethostname()
+        self.vfs = VFS.default()
         self.cwd = "/"
         self.commands = all_commands()
         self.exited = False
 
     def prompt(self) -> str:
         return f"{self.user}@{self.host}:{self.cwd}$ "
+
+    def load_vfs(self, path: str) -> None:
+        try:
+            self.vfs = VFS.load(path)
+        except VFSError as e:
+            self.output(f"Ошибка загрузки VFS: {e}. Используется VFS по умолчанию")
+            return
+        self.cwd = "/"
+        files, dirs = self.vfs.stats()
+        self.output(f"VFS загружена из {path}: файлов {files}, каталогов {dirs}")
 
     def execute(self, line: str) -> bool:
         """Выполняет строку, возвращает False при ошибке."""
