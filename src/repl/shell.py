@@ -30,11 +30,18 @@ class Shell:
         try:
             self.vfs = VFS.load(path)
         except VFSError as e:
-            self.output(f"Ошибка загрузки VFS: {e}. Используется VFS по умолчанию")
+            msg = (
+                f"Ошибка загрузки VFS: {e}. "
+                "Используется VFS по умолчанию"
+            )
+            self.output(msg)
             return
         self.cwd = "/"
         files, dirs = self.vfs.stats()
-        self.output(f"VFS загружена из {path}: файлов {files}, каталогов {dirs}")
+        self.output(
+            f"VFS загружена из {path}: "
+            f"файлов {files}, каталогов {dirs}"
+        )
 
     def execute(self, line: str) -> bool:
         """Выполняет строку, возвращает False при ошибке."""
@@ -55,19 +62,29 @@ class Shell:
         return True
 
     def run_script(self, path: str) -> None:
+        """Выполняет стартовый скрипт построчно."""
         try:
             with open(path, encoding="utf-8") as f:
                 lines = f.read().splitlines()
         except OSError as e:
-            self.output(f"Ошибка: не удалось открыть скрипт {path}: {e.strerror}")
+            self.output(
+                f"Ошибка: не удалось открыть скрипт "
+                f"{path}: {e.strerror}"
+            )
             return
         for number, raw in enumerate(lines, 1):
-            # Комментарии в стиле Python: всё после '#'
-            line = raw.split("#", 1)[0].strip()
+            line = self._strip_comment(raw)
             if not line:
                 continue
             self.output(self.prompt() + line)
             if not self.execute(line):
-                self.output(f"Ошибка в скрипте {path}, строка {number}")
+                self.output(
+                    f"Ошибка в скрипте {path}, строка {number}"
+                )
             if self.exited:
                 break
+
+    @staticmethod
+    def _strip_comment(raw: str) -> str:
+        """Убирает комментарий в стиле Python (всё после '#')."""
+        return raw.split("#", 1)[0].strip()

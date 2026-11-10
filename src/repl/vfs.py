@@ -32,16 +32,18 @@ class VFS:
         self.source = source
 
     @classmethod
-    def default(cls, source: Path | None = None) -> VFS:
+    def default(cls, source: Path | None = None) -> "VFS":
         return cls(Dir(""), source)
 
     @classmethod
-    def load(cls, path: str) -> VFS:
+    def load(cls, path: str) -> "VFS":
         source = Path(path)
         if not source.exists():
             raise VFSError(f"VFS не найдена: {path}")
         if not source.is_dir():
-            raise VFSError(f"неверный формат VFS, ожидается директория: {path}")
+            raise VFSError(
+                f"неверный формат VFS, ожидается директория: {path}"
+            )
         try:
             root = _read_dir(source, "")
         except OSError as e:
@@ -98,7 +100,10 @@ def normalize(cwd: str, path: str) -> str:
 
 def mode_string(node: Node) -> str:
     kind = "d" if isinstance(node, Dir) else "-"
-    bits = "".join(ch if node.mode & (1 << (8 - i)) else "-" for i, ch in enumerate("rwxrwxrwx"))
+    bits = "".join(
+        ch if node.mode & (1 << (8 - i)) else "-"
+        for i, ch in enumerate("rwxrwxrwx")
+    )
     return kind + bits
 
 
@@ -111,5 +116,7 @@ def _read_dir(path: Path, name: str) -> Dir:
             node.children[entry.name] = _read_dir(entry, entry.name)
         elif entry.is_file():
             mode = entry.stat().st_mode & 0o777
-            node.children[entry.name] = File(entry.name, mode, entry.read_bytes())
+            node.children[entry.name] = File(
+                entry.name, mode, entry.read_bytes()
+            )
     return node

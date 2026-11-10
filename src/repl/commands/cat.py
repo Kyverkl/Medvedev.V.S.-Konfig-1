@@ -9,4 +9,8 @@ class Cat(Command):
     def run(self, shell, args: list[str]) -> str:
         if not args:
             raise CommandError("cat: не указан файл")
-        return "".join(get_file(shell, "cat", path).content.decode("utf-8", errors="replace") for path in args)
+        parts = []
+        for path in args:
+            data = get_file(shell, "cat", path).content
+            parts.append(data.decode("utf-8", errors="replace"))
+        return "".join(parts)

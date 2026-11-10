@@ -12,9 +12,15 @@ class Help(Command):
         if args:
             command = shell.commands.get(args[0])
             if command is None:
-                raise CommandError(f"help: нет такой команды: {args[0]}")
+                raise CommandError(
+                    f"help: нет такой команды: {args[0]}"
+                )
             commands = [command]
         else:
             commands = list(shell.commands.values())
         width = max(len(c.usage) for c in commands)
-        return "\n".join(f"{c.usage:<{width}}  {c.description}" for c in commands)
+        lines = [
+            f"{c.usage:<{width}}  {c.description}"
+            for c in commands
+        ]
+        return "\n".join(lines)

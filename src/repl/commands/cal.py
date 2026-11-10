@@ -3,6 +3,12 @@ from datetime import date
 
 from repl.commands.base import Command, CommandError
 
+MAX_ARGS = 2
+MIN_YEAR = 1
+MAX_YEAR = 9999
+MIN_MONTH = 1
+MAX_MONTH = 12
+
 
 class Cal(Command):
     name = "cal"
@@ -10,23 +16,30 @@ class Cal(Command):
     description = "календарь на текущий месяц, заданный месяц или год"
 
     def run(self, shell, args: list[str]) -> str:
-        if len(args) > 2:
+        if len(args) > MAX_ARGS:
             raise CommandError("cal: слишком много аргументов")
         try:
             numbers = [int(arg) for arg in args]
         except ValueError:
-            raise CommandError(f"cal: неверный аргумент: {' '.join(args)}")
+            joined = " ".join(args)
+            raise CommandError(f"cal: неверный аргумент: {joined}")
 
         cal = calendar.TextCalendar(calendar.MONDAY)
         today = date.today()
         if not numbers:
             return cal.formatmonth(today.year, today.month)
         year = numbers[-1]
-        if not 1 <= year <= 9999:
-            raise CommandError(f"cal: год {year} вне диапазона 1..9999")
+        if not MIN_YEAR <= year <= MAX_YEAR:
+            raise CommandError(
+                f"cal: год {year} вне диапазона "
+                f"{MIN_YEAR}..{MAX_YEAR}"
+            )
         if len(numbers) == 1:
             return cal.formatyear(year)
         month = numbers[0]
-        if not 1 <= month <= 12:
-            raise CommandError(f"cal: месяц {month} вне диапазона 1..12")
+        if not MIN_MONTH <= month <= MAX_MONTH:
+            raise CommandError(
+                f"cal: месяц {month} вне диапазона "
+                f"{MIN_MONTH}..{MAX_MONTH}"
+            )
         return cal.formatmonth(year, month)

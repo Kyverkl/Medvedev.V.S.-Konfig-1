@@ -11,7 +11,18 @@ from repl.commands.wc import Wc
 
 
 def all_commands() -> dict[str, Command]:
-    return {cmd.name: cmd for cmd in (Ls(), Cd(), Cat(), Wc(), Cal(), Chmod(), VfsInit(), Help(), Exit())}
+    cmds = (
+        Ls(),
+        Cd(),
+        Cat(),
+        Wc(),
+        Cal(),
+        Chmod(),
+        VfsInit(),
+        Help(),
+        Exit(),
+    )
+    return {cmd.name: cmd for cmd in cmds}
 
 
 __all__ = ["Command", "CommandError", "all_commands"]

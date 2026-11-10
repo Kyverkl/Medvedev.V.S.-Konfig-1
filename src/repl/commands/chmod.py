@@ -6,12 +6,14 @@ OCTAL = re.compile(r"[0-7]{1,4}")
 SYMBOLIC = re.compile(r"([ugoa]*)([+\-=])([rwx]*)")
 WHO = {"u": 0o700, "g": 0o070, "o": 0o007, "a": 0o777}
 PERMS = {"r": 0o444, "w": 0o222, "x": 0o111}
+MODE_MASK = 0o777
+MIN_ARGS = 2
 
 
 def apply_mode(mode: int, spec: str) -> int:
-    """Новые права по восьмеричной (755) или символьной (u+x,go-w) записи."""
+    """Новые права по восьмеричной или символьной записи."""
     if OCTAL.fullmatch(spec):
-        return int(spec, 8) & 0o777
+        return int(spec, 8) & MODE_MASK
     for clause in spec.split(","):
         match = SYMBOLIC.fullmatch(clause)
         if match is None:
@@ -30,23 +32,30 @@ def apply_mode(mode: int, spec: str) -> int:
             mode &= ~bits
         else:
             mode = (mode & ~who_mask) | bits
-    return mode & 0o777
+    return mode & MODE_MASK
 
 
 class Chmod(Command):
     name = "chmod"
     usage = "chmod режим путь..."
-    description = "изменение прав доступа (755, u+x, go-w, a=r); только в памяти"
+    description = (
+        "изменение прав доступа (755, u+x, go-w, a=r); "
+        "только в памяти"
+    )
 
     def run(self, shell, args: list[str]) -> str:
-        if len(args) < 2:
-            raise CommandError("chmod: нужно указать режим и хотя бы один путь")
+        if len(args) < MIN_ARGS:
+            raise CommandError(
+                "chmod: нужно указать режим и хотя бы один путь"
+            )
         spec, paths = args[0], args[1:]
         nodes = []
         for path in paths:
             node = shell.lookup(path)
             if node is None:
-                raise CommandError(f"chmod: {path}: нет такого файла или каталога")
+                raise CommandError(
+                    f"chmod: {path}: нет такого файла или каталога"
+                )
             nodes.append(node)
         for node in nodes:
             try:

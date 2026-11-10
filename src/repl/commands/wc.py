@@ -1,7 +1,10 @@
 from repl.commands.base import Command, CommandError, get_file
 
-# Ключ -> индекс счётчика: строки, слова, байты
-FLAGS = {"-l": 0, "-w": 1, "-c": 2}
+IDX_LINES = 0
+IDX_WORDS = 1
+IDX_BYTES = 2
+FLAGS = {"-l": IDX_LINES, "-w": IDX_WORDS, "-c": IDX_BYTES}
+ALL_COLUMNS = [IDX_LINES, IDX_WORDS, IDX_BYTES]
 
 
 class Wc(Command):
@@ -10,8 +13,20 @@ class Wc(Command):
     description = "число строк, слов и байт в файлах"
 
     def run(self, shell, args: list[str]) -> str:
-        columns = set()
-        paths = []
+        columns, paths = self._parse_args(args)
+        if not paths:
+            raise CommandError("wc: не указан файл")
+        rows, total = self._count_all(shell, paths)
+        if len(paths) > 1:
+            rows.append((total, "итого"))
+        shown = sorted(columns) or ALL_COLUMNS
+        return self._format_rows(rows, shown)
+
+    def _parse_args(
+        self, args: list[str]
+    ) -> tuple[set[int], list[str]]:
+        columns: set[int] = set()
+        paths: list[str] = []
         for arg in args:
             if arg in FLAGS:
                 columns.add(FLAGS[arg])
@@ -19,18 +34,34 @@ class Wc(Command):
                 raise CommandError(f"wc: неверный ключ: {arg}")
             else:
                 paths.append(arg)
-        if not paths:
-            raise CommandError("wc: не указан файл")
+        return columns, paths
 
+    def _count_all(
+        self, shell, paths: list[str]
+    ) -> tuple[list[tuple[list[int], str]], list[int]]:
         rows = []
         total = [0, 0, 0]
         for path in paths:
             data = get_file(shell, "wc", path).content
-            counts = [data.count(b"\n"), len(data.split()), len(data)]
+            counts = self._count_data(data)
             total = [a + b for a, b in zip(total, counts)]
             rows.append((counts, path))
-        if len(paths) > 1:
-            rows.append((total, "итого"))
+        return rows, total
 
-        shown = sorted(columns) or [0, 1, 2]
-        return "\n".join("".join(f"{counts[i]:>7}" for i in shown) + f" {name}" for counts, name in rows)
+    @staticmethod
+    def _count_data(data: bytes) -> list[int]:
+        return [
+            data.count(b"\n"),
+            len(data.split()),
+            len(data),
+        ]
+
+    @staticmethod
+    def _format_rows(
+        rows: list[tuple[list[int], str]], shown: list[int]
+    ) -> str:
+        lines = []
+        for counts, name in rows:
+            nums = "".join(f"{counts[i]:>7}" for i in shown)
+            lines.append(f"{nums} {name}")
+        return "\n".join(lines)
